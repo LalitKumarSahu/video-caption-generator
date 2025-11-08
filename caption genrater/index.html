@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Caption Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .video-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .controls-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .video-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #videoPlayer {
+            width: 100%;
+            display: block;
+            max-height: 400px;
+        }
+        
+        .video-placeholder {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .video-placeholder i {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .caption-overlay {
+            position: absolute;
+            bottom: 20%;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            transition: all 0.3s ease;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        .caption-text {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1.3rem;
+            max-width: 90%;
+            word-wrap: break-word;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .upload-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #4CC9F0;
+            color: #1a1a2e;
+        }
+        
+        .btn-secondary {
+            background: #4361ee;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .caption-controls {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .caption-styles {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .style-option {
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        
+        .style-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .style-option.active {
+            border-color: #4CC9F0;
+            background: rgba(76, 201, 240, 0.2);
+        }
+        
+        .style-preview {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: #4CC9F0;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .status-message {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+        
+        .status-error {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+        }
+        
+        .caption-preview {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .upload-options {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Video Caption Generator</h1>
+            <p class="subtitle">Upload video, auto-generate captions, and customize styles</p>
+        </header>
+        
+        <main class="main-content">
+            <section class="video-section">
+                <h2 class="section-title">Video Player</h2>
+                <div class="video-container">
+                    <div class="video-placeholder" id="videoPlaceholder">
+                        <i>🎬</i>
+                        <p>Upload a video to get started</p>
+                    </div>
+                    <video id="videoPlayer" class="hidden" controls>
+                        Your browser does not support the video element.
+                    </video>
+                    <div class="caption-overlay">
+                        <div class="caption-text" id="captionDisplay">Caption will appear here</div>
+                    </div>
+                </div>
+                
+                <div class="caption-preview">
+                    <div id="previewText">Preview: <span id="previewCaption">Caption will appear here</span></div>
+                </div>
+                
+                <div class="upload-options">
+                    <button class="btn btn-primary" id="galleryBtn">
+                        <i class="icon">📁</i> Choose from Gallery
+                    </button>
+                    <button class="btn btn-secondary" id="cameraBtn">
+                        <i class="icon">📷</i> Use Camera
+                    </button>
+                    <input type="file" id="videoUpload" accept="video/*" class="hidden">
+                </div>
+                
+                <div class="file-info hidden" id="fileInfo">
+                    <div>File: <span id="fileName">-</span></div>
+                    <div>Size: <span id="fileSize">-</span></div>
+                    <div class="progress-bar">
+                        <div class="progress" id="uploadProgress"></div>
+                    </div>
+                </div>
+                
+                <div id="statusMessage" class="status-message hidden"></div>
+            </section>
+            
+            <section class="controls-section">
+                <h2 class="section-title">Caption Controls</h2>
+                
+                <div class="caption-controls">
+                    <div class="control-group">
+                        <label for="captionInput">Edit Caption:</label>
+                        <textarea id="captionInput" placeholder="Edit your caption here...">You won't be able to stop smiling after watching this video.</textarea>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Choose Caption Style:</label>
+                        <div class="caption-styles">
+                            <div class="style-option active" data-style="default">
+                                <div class="style-preview">Simple</div>
+                                <div class="style-name">Default</div>
+                            </div>
+                            <div class="style-option" data-style="bold">
+                                <div class="style-preview" style="font-weight: bold;">Bold</div>
+                                <div class="style-name">Bold</div>
+                            </div>
+                            <div class="style-option" data-style="outline">
+                                <div class="style-preview" style="text-shadow: 1px 1px 0 #000, -1px -1px 0 #000;">Outline</div>
+                                <div class="style-name">Outline</div>
+                            </div>
+                            <div class="style-option" data-style="background">
+                                <div class="style-preview" style="background: rgba(0,0,0,0.7); padding: 5px; border-radius: 5px;">Background</div>
+                                <div class="style-name">Background</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="captionPosition">Caption Position:</label>
+                        <select id="captionPosition">
+                            <option value="bottom">Bottom</option>
+                            <option value="middle">Middle</option>
+                            <option value="top">Top</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="captionSize">Caption Size:</label>
+                        <input type="range" id="captionSize" min="14" max="36" value="20">
+                        <div style="text-align: center; margin-top: 5px;">
+                            <span id="captionSizeValue">20px</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="captionColor">Caption Color:</label>
+                        <input type="color" id="captionColor" value="#ffffff">
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-success" id="generateCaption">
+                        <i class="icon">✨</i> Generate Caption
+                    </button>
+                    <button class="btn btn-primary" id="applyChanges">
+                        <i class="icon">✅</i> Apply Changes
+                    </button>
+                    <button class="btn btn-danger" id="resetCaption">
+                        <i class="icon">🔄</i> Reset
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // DOM Elements
+        const videoPlayer = document.getElementById('videoPlayer');
+        const videoUpload = document.getElementById('videoUpload');
+        const videoPlaceholder = document.getElementById('videoPlaceholder');
+        const galleryBtn = document.getElementById('galleryBtn');
+        const cameraBtn = document.getElementById('cameraBtn');
+        const captionInput = document.getElementById('captionInput');
+        const captionDisplay = document.getElementById('captionDisplay');
+        const previewCaption = document.getElementById('previewCaption');
+        const captionPosition = document.getElementById('captionPosition');
+        const captionSize = document.getElementById('captionSize');
+        const captionSizeValue = document.getElementById('captionSizeValue');
+        const captionColor = document.getElementById('captionColor');
+        const generateCaptionBtn = document.getElementById('generateCaption');
+        const applyChangesBtn = document.getElementById('applyChanges');
+        const resetCaptionBtn = document.getElementById('resetCaption');
+        const styleOptions = document.querySelectorAll('.style-option');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const statusMessage = document.getElementById('statusMessage');
+        
+        // Event Listeners
+        galleryBtn.addEventListener('click', () => {
+            videoUpload.click();
+        });
+        
+        videoUpload.addEventListener('change', handleVideoUpload);
+        
+        cameraBtn.addEventListener('click', () => {
+            alert("Camera feature would require browser camera access permissions for actual implementation.");
+        });
+        
+        generateCaptionBtn.addEventListener('click', () => {
+            // Simulate auto caption generation
+            const captions = [
+                "You won't be able to stop smiling after watching this video.",
+                "This video is absolutely amazing!",
+                "The beauty of nature in this video is breathtaking.",
+                "You'll learn something new from this video.",
+                "This video will make your day better.",
+                "Life is an adventure - enjoy every moment!",
+                "Capturing memories one frame at a time.",
+                "Sometimes the best moments are unplanned.",
+                "Creating stories through the lens.",
+                "Every video tells a unique story."
+            ];
+            const randomCaption = captions[Math.floor(Math.random() * captions.length)];
+            captionInput.value = randomCaption;
+            updateCaptionDisplay();
+            showStatus("New caption generated successfully!", "success");
+        });
+        
+        applyChangesBtn.addEventListener('click', () => {
+            updateCaptionDisplay();
+            showStatus("Caption applied to video!", "success");
+        });
+        
+        resetCaptionBtn.addEventListener('click', () => {
+            captionInput.value = "";
+            captionDisplay.textContent = "Caption will appear here";
+            previewCaption.textContent = "Caption will appear here";
+            captionSize.value = 20;
+            captionSizeValue.textContent = "20px";
+            captionPosition.value = "bottom";
+            captionColor.value = "#ffffff";
+            
+            // Reset styles
+            styleOptions.forEach(option => {
+                option.classList.remove('active');
+                if (option.dataset.style === 'default') {
+                    option.classList.add('active');
+                }
+            });
+            
+            updateCaptionStyle('default');
+            updateCaptionPosition();
+            updateCaptionSize();
+            updateCaptionColor();
+            showStatus("All settings reset to default!", "success");
+        });
+        
+        captionPosition.addEventListener('change', updateCaptionPosition);
+        captionSize.addEventListener('input', updateCaptionSize);
+        captionColor.addEventListener('input', updateCaptionColor);
+        captionInput.addEventListener('input', updatePreview);
+        
+        // Style options
+        styleOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                styleOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                updateCaptionStyle(option.dataset.style);
+                showStatus(`Caption style changed to ${option.dataset.style}`, "success");
+            });
+        });
+        
+        // Functions
+        function handleVideoUpload(e) {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                
+                // Check if file is a video
+                if (!file.type.startsWith('video/')) {
+                    showStatus("Please select a video file!", "error");
+                    return;
+                }
+                
+                // Show file info
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                fileInfo.classList.remove('hidden');
+                
+                // Simulate upload progress
+                simulateUploadProgress();
+                
+                // Create video URL and set as source
+                const videoURL = URL.createObjectURL(file);
+                videoPlayer.src = videoURL;
+                videoPlaceholder.classList.add('hidden');
+                videoPlayer.classList.remove('hidden');
+                
+                // Auto-generate caption from filename (simulated)
+                const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                captionInput.value = `Auto-generated caption for "${fileNameWithoutExt}" video.`;
+                updateCaptionDisplay();
+                
+                showStatus("Video uploaded successfully! Caption is now visible.", "success");
+            }
+        }
+        
+        function simulateUploadProgress() {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                }
+                uploadProgress.style.width = `${progress}%`;
+            }, 200);
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function updateCaptionDisplay() {
+            const caption = captionInput.value || "Caption will appear here";
+            captionDisplay.textContent = caption;
+            previewCaption.textContent = caption;
+        }
+        
+        function updatePreview() {
+            previewCaption.textContent = captionInput.value || "Caption will appear here";
+        }
+        
+        function updateCaptionPosition() {
+            const position = captionPosition.value;
+            const overlay = document.querySelector('.caption-overlay');
+            
+            if (position === 'top') {
+                overlay.style.bottom = 'auto';
+                overlay.style.top = '15%';
+            } else if (position === 'middle') {
+                overlay.style.bottom = 'auto';
+                overlay.style.top = '50%';
+                overlay.style.transform = 'translateY(-50%)';
+            } else {
+                overlay.style.top = 'auto';
+                overlay.style.bottom = '15%';
+                overlay.style.transform = 'none';
+            }
+        }
+        
+        function updateCaptionSize() {
+            const size = captionSize.value;
+            captionDisplay.style.fontSize = `${size}px`;
+            captionSizeValue.textContent = `${size}px`;
+        }
+        
+        function updateCaptionColor() {
+            captionDisplay.style.color = captionColor.value;
+        }
+        
+        function updateCaptionStyle(style) {
+            // Reset styles
+            captionDisplay.style.fontWeight = 'normal';
+            captionDisplay.style.textShadow = 'none';
+            captionDisplay.style.background = 'rgba(0, 0, 0, 0.8)';
+            captionDisplay.style.padding = '12px 24px';
+            captionDisplay.style.borderRadius = '8px';
+            captionDisplay.style.border = '2px solid rgba(255, 255, 255, 0.2)';
+            
+            // Apply selected style
+            if (style === 'bold') {
+                captionDisplay.style.fontWeight = 'bold';
+            } else if (style === 'outline') {
+                captionDisplay.style.textShadow = '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000';
+                captionDisplay.style.background = 'transparent';
+                captionDisplay.style.border = 'none';
+            } else if (style === 'background') {
+                captionDisplay.style.background = 'rgba(0, 0, 0, 0.9)';
+                captionDisplay.style.padding = '15px 30px';
+                captionDisplay.style.borderRadius = '12px';
+            }
+        }
+        
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.classList.remove('hidden');
+            
+            // Hide status after 3 seconds
+            setTimeout(() => {
+                statusMessage.classList.add('hidden');
+            }, 3000);
+        }
+        
+        // Initialize
+        updateCaptionDisplay();
+        updateCaptionSize();
+        showStatus("Website loaded successfully! Upload a video to see captions.", "success");
+    </script>
+</body>
+</html>
